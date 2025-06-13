@@ -3,7 +3,7 @@ import numpy as np
 from scipy.signal import savgol_filter
 import os
 
-
+# Use the name of the video
 DATA_FILE = r"c:\Users\TRIOS\OneDrive - KTH\Thesis - Giorgio Coraglia\CSV trajectory\kinovea_exportBardonecchia2.csv"
 df = pd.read_csv(DATA_FILE, sep=';', quotechar='"')
 
@@ -17,7 +17,7 @@ df = df.rename(columns={
 for col in ["X", "Y", "Time"]:
     df[col] = df[col].astype(str).str.replace(',', '.').astype(float)
 
-
+# Conversion from Pixel to meters
 real_length_cm = float(input("Enter the real ski length in centimeters: "))
 real_length_m = real_length_cm / 100  # Convert cm to meters
 pixel_length = float(input("Enter the measured ski length in pixels (from Kinovea): "))
@@ -27,14 +27,14 @@ scaling_factor = real_length_m / pixel_length  # meters per pixel
 df["X"] *= scaling_factor
 df["Y"] *= scaling_factor
 
-# === Apply Savitzky-Golay filter ===
+# Apply Savitzky-Golay filter 
 window_length = 11
 if window_length >= len(df):
     window_length = len(df) - (1 - len(df) % 2)
 df["Xs"] = savgol_filter(df["X"], window_length=window_length, polyorder=2)
 df["Ys"] = savgol_filter(df["Y"], window_length=window_length, polyorder=2)
 
-
+# Derivates 
 df["dX"] = df["Xs"].diff()
 df["dY"] = df["Ys"].diff()
 df["dt"] = df["Time"].diff()
@@ -43,7 +43,7 @@ df["dt"] = df["Time"].diff()
 df["v_tot"] = np.sqrt(df["dX"]**2 + df["dY"]**2) / df["dt"]
 df["v_perp"] = df["dY"] / df["dt"]
 
-
+# Correction with slope angle
 slope_degrees = float(input("Enter the slope angle in degrees: "))
 slope_radians = np.radians(slope_degrees)
 
